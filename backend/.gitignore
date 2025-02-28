@@ -1,2 +1,9 @@
 venv
 .env
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore macOS system file
+.DS_Store

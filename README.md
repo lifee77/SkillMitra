@@ -43,7 +43,23 @@ SkillMitra/
           └── recommendation.py
 
 ```
+Frontend
+```
+SkillMitra/
+└── Frontend/
+    ├── package.json
+    ├── public/
+    │     └── index.html
+    └── src/
+          ├── index.js
+          ├── App.js
+          └── components/
+                ├── DataUpload.js
+                ├── MediaGeneration.js
+                ├── VideoGeneration.js
+                └── Recommendations.js
 
+```
 
 ---
 
