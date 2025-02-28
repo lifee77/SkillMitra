@@ -23,17 +23,27 @@ SkillMitra is a web-based platform that helps users explore vocational training 
 
 ## 📂 Project Structure
 
+Backend
 ```
 SkillMitra/
-│── app.py              # Main Flask app
-│── local.db            # Simulated local database
-│── cloud.db            # Simulated cloud database
-│── templates/
-│   ├── index.html      # Web UI template (Rendered using Flask)
-│── static/
-│   ├── styles.css      # CSS styles (Optional)
-│── README.md           # Documentation
+└── Backend/
+    ├── app.py
+    ├── requirements.txt
+    ├── routes/
+    │     ├── __init__.py
+    │     ├── data_routes.py
+    │     ├── media_routes.py
+    │     └── recommendation_routes.py
+    └── modules/
+          ├── __init__.py
+          ├── data_preprocessing.py
+          ├── audio_generation.py
+          ├── image_generation.py
+          ├── video_generation.py
+          └── recommendation.py
+
 ```
+
 
 ---
 
