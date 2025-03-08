@@ -1,9 +1,12 @@
 import os
 import json
+import time
+import random
 from typing import List, Dict
 import google.generativeai as genai
 from datetime import datetime
 from dotenv import load_dotenv
+from google.api_core.exceptions import ResourceExhausted, ServiceUnavailable
 
 load_dotenv()
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
@@ -18,6 +21,24 @@ class SequentialImagePromptGenerator:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-1.5-pro')
         
+    def _call_api_with_retry(self, content, max_retries=5, base_delay=1.0):
+        """Call the API with exponential backoff retry logic."""
+        retries = 0
+        while retries <= max_retries:
+            try:
+                return self.model.generate_content(content)
+            except (ResourceExhausted, ServiceUnavailable) as e:
+                retries += 1
+                if retries > max_retries:
+                    raise Exception(f"Maximum retries exceeded. API quota limit reached: {e}")
+                
+                # Calculate delay with exponential backoff and jitter
+                delay = base_delay * (2 ** retries) + random.uniform(0, 1)
+                print(f"Rate limit hit. Retrying in {delay:.1f} seconds... (Attempt {retries}/{max_retries})")
+                time.sleep(delay)
+            except Exception as e:
+                raise Exception(f"API Error: {str(e)}")
+    
     def generate_initial_prompt(self, scene_description: str) -> str:
         """Generate the first prompt based on a general scene description."""
         system_prompt = """
@@ -29,7 +50,7 @@ class SequentialImagePromptGenerator:
         
         prompt = f"Create an initial image prompt for the following scene: {scene_description}"
         
-        response = self.model.generate_content([system_prompt, prompt])
+        response = self._call_api_with_retry([system_prompt, prompt])
         return response.text.strip()
     
     def generate_next_prompt(self, previous_prompt: str, frame_number: int, total_frames: int = 60) -> str:
@@ -49,7 +70,7 @@ class SequentialImagePromptGenerator:
         Respond with ONLY the image prompt text, nothing else.
         """
         
-        response = self.model.generate_content(system_prompt)
+        response = self._call_api_with_retry(system_prompt)
         return response.text.strip()
     
     def generate_prompt_sequence(self, initial_scene: str, num_frames: int = 60) -> List[str]:
@@ -57,14 +78,23 @@ class SequentialImagePromptGenerator:
         prompts = []
         
         # Generate initial prompt
+        print(f"Generating initial frame...")
         current_prompt = self.generate_initial_prompt(initial_scene)
         prompts.append(current_prompt)
         
         # Generate subsequent prompts
         for i in range(2, num_frames + 1):
-            current_prompt = self.generate_next_prompt(current_prompt, i, num_frames)
-            prompts.append(current_prompt)
-            print(f"Generated frame {i}/{num_frames}")
+            # Add a small delay between requests to avoid rate limiting
+            time.sleep(0.5)
+            
+            try:
+                current_prompt = self.generate_next_prompt(current_prompt, i, num_frames)
+                prompts.append(current_prompt)
+                print(f"Generated frame {i}/{num_frames}")
+            except Exception as e:
+                print(f"\nError generating frame {i}: {str(e)}")
+                print(f"Stopping sequence generation. {len(prompts)} frames were successfully generated.")
+                break
         
         return prompts
     
@@ -97,14 +127,19 @@ def generate_video_prompts(scene_description: str, num_frames: int = 60, api_key
     Returns:
         List of image prompts
     """
-    generator = SequentialImagePromptGenerator(api_key)
-    prompts = generator.generate_prompt_sequence(scene_description, num_frames)
-    
-    # Save the prompts
-    output_path = generator.save_prompts(prompts)
-    print(f"Prompts saved to {output_path}")
-    
-    return prompts
+    try:
+        generator = SequentialImagePromptGenerator(api_key)
+        prompts = generator.generate_prompt_sequence(scene_description, num_frames)
+        
+        if prompts:
+            # Save the prompts
+            output_path = generator.save_prompts(prompts)
+            print(f"Prompts saved to {output_path}")
+        
+        return prompts
+    except Exception as e:
+        print(f"Error generating video prompts: {str(e)}")
+        return []
 
 if __name__ == "__main__":
     # Example usage
