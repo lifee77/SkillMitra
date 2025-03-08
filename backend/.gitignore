@@ -7,3 +7,11 @@ __pycache__/
 
 # Ignore macOS system file
 .DS_Store
+
+#Image or video outputs
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+outputs/

@@ -21,7 +21,7 @@ class SequentialImagePromptGenerator:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel('gemini-1.5-pro')
         
-    def _call_api_with_retry(self, content, max_retries=5, base_delay=1.0):
+    def _call_api_with_retry(self, content, max_retries=6, base_delay=1.0):
         """Call the API with exponential backoff retry logic."""
         retries = 0
         while retries <= max_retries:
