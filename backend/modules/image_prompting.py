@@ -19,9 +19,9 @@ class SequentialImagePromptGenerator:
         
         # Configure the Gemini API
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-pro')
+        self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
         
-    def _call_api_with_retry(self, content, max_retries=6, base_delay=1.0):
+    def _call_api_with_retry(self, content, max_retries=6, base_delay=3.0):
         """Call the API with exponential backoff retry logic."""
         retries = 0
         while retries <= max_retries:
@@ -39,11 +39,11 @@ class SequentialImagePromptGenerator:
             except Exception as e:
                 raise Exception(f"API Error: {str(e)}")
     
-    def generate_initial_prompt(self, scene_description: str) -> str:
+    def generate_initial_prompt(self, scene_description: str, total_frames: int = 60) -> str:
         """Generate the first prompt based on a general scene description."""
-        system_prompt = """
+        system_prompt = f"""
         You are an expert at creating detailed image prompts. 
-        I need you to create the first image in a sequence of 60 images that will form a cohesive animation or video-like sequence.
+        I need you to create the first image in a sequence of {total_frames} images that will form a cohesive animation or video-like sequence.
         Your prompt should be detailed, visual, and set up a scene that can evolve over time.
         Respond with ONLY the image prompt text, nothing else.
         """
@@ -65,7 +65,7 @@ class SequentialImagePromptGenerator:
         
         Create the next frame description that shows subtle but clear progression from the previous frame.
         Maintain visual consistency (same characters, setting, style) while showing movement or change.
-        Motion should be smooth and incremental as if this were a frame in an animation.
+        Motion should be smooth and incremental as if this were a frame in an animation. Do not change the scene abruptly. The movements should only be a few pixels at a time.
         
         Respond with ONLY the image prompt text, nothing else.
         """
@@ -143,5 +143,5 @@ def generate_video_prompts(scene_description: str, num_frames: int = 60, api_key
 
 if __name__ == "__main__":
     # Example usage
-    scene = "A dandelion seed slowly drifting through a meadow on a sunny day"
-    prompts = generate_video_prompts(scene, num_frames=60)
+    scene = "A female plumber fixing a broken pipe under the kitchen sink"
+    prompts = generate_video_prompts(scene, num_frames=100)

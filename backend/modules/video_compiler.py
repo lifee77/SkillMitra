@@ -21,7 +21,7 @@ def get_image_dimensions(image_path):
 def create_video_from_frames(
     frames_dir,
     output_path=None,
-    fps=24,
+    fps=12,
     pattern="frame_*.png",
     resize=None
 ):
