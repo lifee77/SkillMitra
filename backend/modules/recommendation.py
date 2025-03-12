@@ -46,7 +46,7 @@ USER_QUESTIONS = [
 
 # Initialize the embedding model - using a smaller model that works well on CPU
 # In production, you might want to use a more powerful model like 'all-mpnet-base-v2'
-_model = None
+_model = "paraphrase-MiniLM-L6-v2"
 
 def get_embedding_model():
     """Lazy loading of the embedding model"""

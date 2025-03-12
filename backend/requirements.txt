@@ -8,3 +8,4 @@ google-generativeai>=0.3.0
 python-dotenv>=1.0.0
 together>=0.1.6
 requests>=2.25.0
+sentence_transformers
